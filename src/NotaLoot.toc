@@ -1,0 +1,18 @@
+## Interface: 30400
+## Title: Nota Loot
+## Notes: Loot distribution helper developed for nota
+## Author: Bluephobia
+## Version: 3.0.3
+## SavedVariables: NotaLootPrefs
+
+embeds.xml
+NotaLoot.lua
+MessageQueue.lua
+ItemRow.lua
+GUI.lua
+Item.lua
+Session.lua
+Client.lua
+Master.lua
+Filter.lua
+Options.lua
