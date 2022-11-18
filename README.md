@@ -1,5 +1,8 @@
 # NotaLoot
 
+[Install via CurseForge](https://www.curseforge.com/wow/addons/notaloot)<br>
+[Download from WoWInterface](https://www.wowinterface.com/downloads/info26467-NotaLoot.html)
+
 This add-on was developed for <none of the above> on Gehennas-EU.
 
 ### Features
