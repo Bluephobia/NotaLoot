@@ -320,6 +320,13 @@ function Master:StopViewingRemoteSession()
 	self:OnSessionChanged()
 end
 
+function Master:DisconnectViewers()
+	for viewer in pairs(self.viewers) do
+		self:DeclineViewRequest(viewer)
+	end
+	self.viewers = {}
+end
+
 function Master:ConfirmViewRequest(sender)
 	-- Check whether the requester is a guild officer that should be allowed automatically
 	if IsInGuild() and NotaLoot:GetPref("AutoAllowOfficers", true) then
@@ -523,10 +530,7 @@ function Master:OnViewResponse(sender, granted, encodedBids)
 	session:ImportBids(encodedBids)
 
 	-- "Disconnect" any existing viewers
-	for viewer in pairs(self.viewers) do
-		self:DeclineViewRequest(viewer)
-	end
-	self.viewers = {}
+	self:DisconnectViewers()
 
 	-- Finally change the session
 	self.session = session

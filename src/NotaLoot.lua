@@ -6,7 +6,7 @@ local LibDeflate = LibStub("LibDeflate")
 local pairs, print, table, type, unpack = pairs, print, table, type, unpack
 
 -- WoW APIs
-local C_Timer, FlashClientIcon = C_Timer, FlashClientIcon
+local C_Timer, FlashClientIcon, IsInGroup = C_Timer, FlashClientIcon, IsInGroup
 local GetAddOnMetadata, InCombatLockdown, UnitName = GetAddOnMetadata, InCombatLockdown, UnitName
 local GetNumGuildMembers, GetGuildRosterInfo = GetNumGuildMembers, GetGuildRosterInfo
 local RaidNotice_AddMessage, RaidWarningFrame = RaidNotice_AddMessage, RaidWarningFrame
@@ -68,25 +68,22 @@ NotaLoot.STATUS = {
 -- Lifecycle
 
 function NotaLoot:OnInitialize()
+	-- During initialization commands are queued
+	self.initializing = true
+	self.commandQueue = {}
+
 	SLASH_NOTALOOT1 = "/nl"
-	SlashCmdList["NOTALOOT"] = function(arg)
-		if arg == "opt" then
-			InterfaceOptionsFrame_Show()
-			InterfaceOptionsFrame_OpenToCategory(AddonName)
-		else
-			NotaLoot.client:Toggle()
-		end
-	end
+	SlashCmdList["NOTALOOT"] = function(...) self:ProcessCommand("nl", ...) end
 
 	SLASH_NOTALOOTMASTER1 = "/nlm"
-	SlashCmdList["NOTALOOTMASTER"] = function()
-		NotaLoot.master:Toggle()
-	end
+	SlashCmdList["NOTALOOTMASTER"] = function(...) self:ProcessCommand("nlm", ...) end
 
 	self:RegisterComm(CommPrefix)
 	self:RegisterOptionsTable()
 
 	self:RegisterEvent("PLAYER_ENTERING_WORLD")
+	self:RegisterEvent("GROUP_JOINED")
+	self:RegisterEvent("GROUP_LEFT")
 end
 
 function NotaLoot:OnEnable()
@@ -104,11 +101,53 @@ end
 function NotaLoot:PLAYER_ENTERING_WORLD(_, login, reload)
 	if login or reload then
 		self:UnregisterEvent("PLAYER_ENTERING_WORLD")
-		C_Timer.After(1, function()
-			self:Broadcast(NotaLoot.MESSAGE.INIT, self.version)
-			self:Broadcast(NotaLoot.MESSAGE.DELETE_ALL_ITEMS)
+
+		-- There is some period of time after logging in or reloading where addon messages aren't sent
+		-- This delay is an attempt to wait a "safe" amount of time before attempting init messages
+		C_Timer.After(8, function()
+			self.initializing = false
+			if IsInGroup() then
+				self:GROUP_JOINED()
+			end
+			self:ProcessQueuedCommands()
 		end);
 	end
+end
+
+function NotaLoot:GROUP_JOINED()
+	if self.initializing then return end
+	self:Broadcast(NotaLoot.MESSAGE.INIT, self.version) -- Inform raid of my version
+	self:Broadcast(NotaLoot.MESSAGE.DELETE_ALL_ITEMS) -- Delete any items from my previous session
+	self:Broadcast(NotaLoot.MESSAGE.SYNC_REQUEST) -- Sync with existing sessions
+end
+
+function NotaLoot:GROUP_LEFT()
+	self.client:Reset()
+	self.master:DisconnectViewers()
+	self.master:StopViewingRemoteSession()
+end
+
+-- Commands
+
+function NotaLoot:ProcessCommand(cmd, ...)
+	if select(1, ...) == "opt" then
+		InterfaceOptionsFrame_Show()
+		InterfaceOptionsFrame_OpenToCategory(AddonName)
+	elseif self.initializing then
+		self:Info("Initializing... one moment please!")
+		self.commandQueue[cmd] = true
+	elseif cmd == "nl" then
+		self.client:Toggle()
+	elseif cmd == "nlm" then
+		self.master:Toggle()
+	end
+end
+
+function NotaLoot:ProcessQueuedCommands()
+	for cmd in pairs(self.commandQueue) do
+		self:ProcessCommand(cmd)
+	end
+	self.commandQueue = {}
 end
 
 -- Communication
@@ -144,7 +183,7 @@ function NotaLoot:OnCommReceived(prefix, encodedPayload, channel, sender)
 	local success, payload = LibSerialize:Deserialize(decompressedPayload)
 	if not success then self:Debug("Failed to deserialize", encodedPayload); return end
 
-	-- NotaLoot:Debug("OnCommReceived", payload, channel, sender)
+	-- self:Debug("OnCommReceived", payload, channel, sender)
 
 	local messages = self:Split(payload, NotaLoot.SEPARATOR.MESSAGE)
 
@@ -155,21 +194,6 @@ function NotaLoot:OnCommReceived(prefix, encodedPayload, channel, sender)
 
 		self:SendMessage(msg, sender, unpack(data))
 	end
-end
-
-function NotaLoot:OnVersionReceived(remoteVersion)
-	if not self.versionUpdateAvailable and self:CompareVersion(remoteVersion) > 0 then
-		self.versionUpdateAvailable = true
-		NotaLoot:Info("A newer version", remoteVersion, "is available. Please consider updating.")
-	end
-end
-
-function NotaLoot:NotifyLocal(msg, r, g, b)
-	if msg and not InCombatLockdown() then
-		local color = { r = r or 1, g = g or 0.96, b = b or 0.41 }
-		RaidNotice_AddMessage(RaidWarningFrame, "[NotaLoot] "..msg, color, 5);
-	end
-	FlashClientIcon()
 end
 
 -- Do not invoke this function directly
@@ -187,13 +211,28 @@ function NotaLoot:SendCommImmediate()
 
 	if not payload then return end
 
-	-- NotaLoot:Debug("SendCommImmediate", payload, channel, target)
+	-- self:Debug("SendCommImmediate", payload, channel, target)
 
 	local serializedPayload = LibSerialize:Serialize(payload)
 	local compressedPayload = LibDeflate:CompressDeflate(serializedPayload)
 	local encodedPayload = LibDeflate:EncodeForWoWAddonChannel(compressedPayload)
 
 	self:SendCommMessage(CommPrefix, encodedPayload, channel, target)
+end
+
+function NotaLoot:OnVersionReceived(remoteVersion)
+	if not self.versionUpdateAvailable and self:CompareVersion(remoteVersion) > 0 then
+		self.versionUpdateAvailable = true
+		self:Info("A newer version", remoteVersion, "is available. Please consider updating.")
+	end
+end
+
+function NotaLoot:NotifyLocal(msg, r, g, b)
+	if msg and not InCombatLockdown() then
+		local color = { r = r or 1, g = g or 0.96, b = b or 0.41 }
+		RaidNotice_AddMessage(RaidWarningFrame, "[NotaLoot] "..msg, color, 5);
+	end
+	FlashClientIcon()
 end
 
 -- Persistence

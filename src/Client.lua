@@ -78,7 +78,6 @@ function Client:Show()
 	if not self.window then
 		self.window = self:CreateWindow()
 		self:ToggleClassFilter(false)
-		NotaLoot:Broadcast(NotaLoot.MESSAGE.SYNC_REQUEST)
 	end
 
 	self.window:Show()
@@ -97,6 +96,12 @@ end
 
 function Client:Hide()
 	if self.window then self.window:Hide() end
+end
+
+function Client:Reset()
+	self:Hide()
+	self.sessions = {}
+	self.activeSession = nil
 end
 
 -- GUI
