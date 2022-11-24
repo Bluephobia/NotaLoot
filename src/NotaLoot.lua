@@ -19,7 +19,7 @@ local CommPrefix = AddonName..Version:sub(Version:find("[^.]*"))
 
 local NotaLoot = LibStub("AceAddon-3.0"):NewAddon(AddonName, "AceComm-3.0", "AceEvent-3.0")
 NotaLoot.version = Version
--- NotaLoot.debug = true
+-- NotaLoot.debugPrint = true
 
 -- Constants
 
@@ -130,9 +130,15 @@ end
 -- Commands
 
 function NotaLoot:ProcessCommand(cmd, ...)
-  if select(1, ...) == "opt" then
+  local arg = select(1, ...)
+
+  if arg == "opt" then
     InterfaceOptionsFrame_Show()
     InterfaceOptionsFrame_OpenToCategory(AddonName)
+  elseif arg == "dlog" then
+    NotaLoot.GUI:ShowLogWindow(self.debugLog)
+  elseif cmd == "nlm" and arg == "export" then
+    NotaLoot.GUI:ShowLogWindow(self.master.session.log)
   elseif self.initializing then
     self:Info("Initializing... one moment please!")
     self.commandQueue[cmd] = true
@@ -183,7 +189,7 @@ function NotaLoot:OnCommReceived(prefix, encodedPayload, channel, sender)
   local success, payload = LibSerialize:Deserialize(decompressedPayload)
   if not success then self:Debug("Failed to deserialize", encodedPayload); return end
 
-  -- self:Debug("OnCommReceived", payload, channel, sender)
+  self:Debug("OnCommReceived", payload, channel, sender)
 
   local messages = self:Split(payload, NotaLoot.SEPARATOR.MESSAGE)
 
@@ -211,7 +217,7 @@ function NotaLoot:SendCommImmediate()
 
   if not payload then return end
 
-  -- self:Debug("SendCommImmediate", payload, channel, target)
+  self:Debug("SendCommImmediate", payload, channel, target)
 
   local serializedPayload = LibSerialize:Serialize(payload)
   local compressedPayload = LibDeflate:CompressDeflate(serializedPayload)
@@ -256,17 +262,27 @@ end
 -- Utility
 
 function NotaLoot:Debug(...)
-  if self.debug then
+  if self.debugPrint then
     self:Info(...)
   end
+  self:Log("[Debug]", ...)
 end
 
 function NotaLoot:Info(...)
   print("|cFFFF6900[NotaLoot]|cFFFFFFFF", ...)
+  self:Log("[Info]", ...)
 end
 
 function NotaLoot:Error(...)
   print("|cFFFF6900[NotaLoot]|cFFFF0000 Error:|cFFFFFFFF", ...)
+  self:Log("[Error]", ...)
+end
+
+function NotaLoot:Log(...)
+  if self:GetPref("DebugLog") then
+    if not self.debugLog then self.debugLog = NotaLoot.DebugLog:Create() end
+    self.debugLog:Write(...)
+  end
 end
 
 function NotaLoot:Split(str, sep)

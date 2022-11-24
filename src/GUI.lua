@@ -112,6 +112,45 @@ function GUI:CreateWindow(name, title)
   return window
 end
 
+function GUI:ShowLogWindow(log)
+  if not log then return end
+
+  local name = log.name:gsub("%s+", "")
+  local window = _G[name] or AceGUI:Create("Frame")
+  window:SetTitle(log.name)
+  window:SetLayout("Fill")
+  window:SetWidth(800)
+  window:SetHeight(400)
+
+  local backdrop = {
+    bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+    edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+    tile = true, tileSize = 32, edgeSize = 32,
+    insets = { left = 8, right = 8, top = 8, bottom = 8 }
+  }
+  window.frame:SetBackdrop(backdrop)
+  window.frame:SetBackdropColor(0, 0, 0, 1)
+
+  if not window.editBox then
+    local editBox = AceGUI:Create("MultiLineEditBox")
+    editBox:SetLabel(nil)
+    editBox.button:Hide()
+
+    window:AddChild(editBox)
+    window.editBox = editBox
+  end
+
+  window.editBox:SetText(log:Dump())
+
+  table.insert(UISpecialFrames, name)
+  _G[name] = window
+
+  window:Show()
+
+  window.editBox:SetFocus()
+  window.editBox:HighlightText(0, -1)
+end
+
 -- Table
 
 function GUI:CreateTable()
@@ -184,10 +223,6 @@ function Table:ReloadRowAtIndex(index, data)
   if not row then return end
 
   local rowInfo = row:GetUserDataTable()
-
-  if rowInfo.data and rowInfo.data ~= data then
-    NotaLoot:Debug("Reloading row at index", index, "with different data!")
-  end
 
   if rowInfo.data and rowInfo.data.UnregisterMessage then
     rowInfo.data:UnregisterMessage(NotaLoot.MESSAGE.ON_CHANGE)

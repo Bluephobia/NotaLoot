@@ -22,6 +22,16 @@ function Session:Create(owner)
   return session
 end
 
+function Session:EnableLog()
+  if not self.log then
+    self.log = NotaLoot.SessionLog:Create()
+  end
+end
+
+function Session:ClearLog()
+  if self.log then self.log:Clear() end
+end
+
 function Session:Contains(item)
   if not item or not item.guid then return false end
 
@@ -125,6 +135,10 @@ function Session:AssignItem(item, winner)
 
   self.assignments[item] = winner
   item:SetWinner(winner)
+
+  if self.log then
+    self.log:Write(item, self:GetBidForPlayer(item, winner))
+  end
 
   self:SendMessage(NotaLoot.MESSAGE.ASSIGN_ITEM, item, winner)
 end

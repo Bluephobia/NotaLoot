@@ -272,6 +272,7 @@ end
 
 function Master:CreateSession()
   local session = NotaLoot.Session:Create()
+  session:EnableLog()
 
   session:RegisterMessage(NotaLoot.MESSAGE.ADD_ITEM, function(_, _, index, item)
     self:OnAddItem(index, item)

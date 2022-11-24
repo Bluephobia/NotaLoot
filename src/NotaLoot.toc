@@ -2,11 +2,12 @@
 ## Title: Nota Loot
 ## Notes: Loot distribution helper developed for nota
 ## Author: Bluephobia
-## Version: 3.0.4
+## Version: 3.1.0
 ## SavedVariables: NotaLootPrefs
 
 embeds.xml
 NotaLoot.lua
+Log.lua
 MessageQueue.lua
 ItemRow.lua
 GUI.lua
