@@ -217,7 +217,6 @@ end
 
 function Table:DeleteRowAtIndex(index, reindex)
   local row = self.rows[index]
-  if not row then return end
 
   if reindex then
     -- Shift every index forward
@@ -230,6 +229,7 @@ function Table:DeleteRowAtIndex(index, reindex)
     self.rows[index] = nil
   end
 
+  if not row then return end
   row:Release()
 
   for i = 1, #self.children do
