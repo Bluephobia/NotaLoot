@@ -174,7 +174,7 @@ function Session:RemoveItemsWithoutLocation()
     if not item or not item.location then
       table.insert(removals, item)
     end
-	end
+  end
 
   for i = 1, #removals do
     self:RemoveItem(removals[i])

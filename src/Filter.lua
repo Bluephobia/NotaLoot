@@ -16,10 +16,6 @@ function Filter:Evaluate(item)
   return true
 end
 
-function Filter:Evaluate(item)
-  return true
-end
-
 -- ClassFilter
 
 local ClassFilterTable = {
