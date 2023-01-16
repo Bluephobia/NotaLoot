@@ -14,7 +14,7 @@ local string, table, tonumber = string, table, tonumber
 local CloseDropDownMenus, CreateFrame, InCombatLockdown = CloseDropDownMenus, CreateFrame, InCombatLockdown
 local MAX_TRADABLE_ITEMS, TradeFrame, UseContainerItem = MAX_TRADABLE_ITEMS, TradeFrame, UseContainerItem
 local SendChatMessage, SendSystemMessage = SendChatMessage, SendSystemMessage
-local C_GuildInfo = C_GuildInfo
+local C_GuildInfo, LOOT_ITEM_SELF = C_GuildInfo, LOOT_ITEM_SELF
 local UIDropDownMenu_AddButton = UIDropDownMenu_AddButton
 local UIDropDownMenu_CreateInfo = UIDropDownMenu_CreateInfo
 local UIDropDownMenu_SetWidth = UIDropDownMenu_SetWidth
@@ -612,7 +612,7 @@ function Master:OnLootMessage(text, ...)
   local player = select(4, ... )
   if player ~= NotaLoot.player then return end
 
-  local _, itemId = text:match("|Hitem:((%d+).-)|h");
+  local _, itemId = text:match(LOOT_ITEM_SELF:sub(1, -4)..".*|Hitem:((%d+).-)|h")
   if not itemId then return end
 
   local item = NotaLoot.Item:CreateForId(tonumber(itemId))
