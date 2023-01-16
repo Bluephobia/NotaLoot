@@ -180,7 +180,7 @@ function NotaLoot:SendComm(msg, data, channel, target)
 end
 
 function NotaLoot:OnCommReceived(prefix, encodedPayload, channel, sender)
-  if sender == NotaLoot.player then return end
+  if sender == NotaLoot.player and channel ~= "WHISPER" then return end
 
   local decodedPayload = LibDeflate:DecodeForWoWAddonChannel(encodedPayload)
   if not decodedPayload then self:Debug("Failed to decode", encodedPayload); return end

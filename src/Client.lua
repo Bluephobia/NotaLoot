@@ -118,7 +118,8 @@ function Client:UpdateSessionInfo(reloadDropdown)
   if reloadDropdown then
     local sessionList = {}
     for owner, _ in pairs(self.sessions) do
-      sessionList[owner] = string.format("%s's Session", owner)
+      local rowText = owner == NotaLoot.player and "Your Session" or string.format("%s's Session", owner);
+      sessionList[owner] = rowText
     end
 
     dropdown:SetList(sessionList)
@@ -215,7 +216,8 @@ function Client:CreateSession(owner, notify)
   end
 
   if notify then
-    NotaLoot:NotifyLocal(string.format("%s started a new session", owner))
+    local notifyText = owner == NotaLoot.player and "You started a session" or string.format("%s started a new session", owner)
+    NotaLoot:NotifyLocal(notifyText)
   end
 
   return session

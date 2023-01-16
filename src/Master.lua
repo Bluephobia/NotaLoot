@@ -260,7 +260,7 @@ function Master:ConfigureSessionsDropdown(level, menuList)
   menuInfo.notCheckable = true
 
   for _, session in pairs(sessions) do
-    if session.owner then
+    if session.owner and session.owner ~= NotaLoot.player then
       menuInfo.text = string.format("%s's Session", session.owner)
       menuInfo.func = function() self:RequestToViewRemoteSession(session) end
       UIDropDownMenu_AddButton(menuInfo)
@@ -294,7 +294,7 @@ function Master:CreateSession()
 end
 
 function Master:RequestToViewRemoteSession(session)
-  if not session or not session.owner then return end
+  if not session or not session.owner or session.owner == NotaLoot.player then return end
 
   if self.pendingViewRequest then
     NotaLoot:Debug("Attempted to view", session.owner, "while already requesting to view", self.pendingViewRequest)
@@ -402,6 +402,7 @@ end
 function Master:OnAddItem(index, item)
   if not self.session.owner then
     NotaLoot:Broadcast(NotaLoot.MESSAGE.ADD_ITEM, { index, item:Encode() })
+    NotaLoot.client:OnAddItem(NotaLoot.player, index, item)
   end
 
   if self.window and self.window:IsShown() then
@@ -414,6 +415,7 @@ end
 function Master:OnDeleteItem(index)
   if not self.session.owner then
     NotaLoot:Broadcast(NotaLoot.MESSAGE.DELETE_ITEM, index)
+    NotaLoot.client:OnDeleteItem(NotaLoot.player, index)
   end
 
   if self.window and self.window:IsShown() then
@@ -427,6 +429,7 @@ function Master:OnAssignItem(item, winner)
 
   if not self.session.owner then
     NotaLoot:Broadcast(NotaLoot.MESSAGE.ASSIGN_ITEM, { index, winner })
+    NotaLoot.client:OnAssignItem(NotaLoot.player, index, winner)
   end
 
   local msg = string.format("Assigned %s to %s", item.link, winner)
@@ -554,6 +557,7 @@ function Master:OnClearButtonClicked()
   else
     self.session:Clear()
     NotaLoot:Broadcast(NotaLoot.MESSAGE.DELETE_ALL_ITEMS)
+    NotaLoot.client:OnDeleteAllItems(NotaLoot.player)
   end
 end
 
