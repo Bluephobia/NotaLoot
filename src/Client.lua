@@ -23,8 +23,8 @@ function Client:Create()
   setmetatable(client, Client)
 
   -- Remote messages
-  NotaLoot:RegisterMessage(NotaLoot.MESSAGE.OPEN_CLIENT, function()
-    client:Show()
+  NotaLoot:RegisterMessage(NotaLoot.MESSAGE.OPEN_CLIENT, function(msg, sender)
+    Client:ConfirmShowRequest(sender)
   end)
   NotaLoot:RegisterMessage(NotaLoot.MESSAGE.ADD_ITEM, function(msg, sender, index, encodedItem)
     client:OnAddItem(sender, tonumber(index), NotaLoot.Item:Decode(encodedItem))
@@ -72,6 +72,21 @@ function Client:CreateWindow()
   window:DoLayout()
 
   return window
+end
+
+function Client:ConfirmShowRequest(sender)
+  -- Check whether the client (reciever) wants to recieve show requests from non officers
+  if NotaLoot:GetPref("ShowClientOfficers", true) then
+    if IsInGuild() then
+      local senderRank = select(1, NotaLoot:GetGuildRank(sender))
+      if senderRank and C_GuildInfo.GuildControlGetRankFlags(senderRank)[4] then
+        self:Show()
+      end
+    end
+    return
+  end
+
+  self:Show()
 end
 
 function Client:Show()
