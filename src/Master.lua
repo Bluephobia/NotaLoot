@@ -14,7 +14,7 @@ local string, table, tonumber = string, table, tonumber
 local CloseDropDownMenus, CreateFrame, InCombatLockdown = CloseDropDownMenus, CreateFrame, InCombatLockdown
 local MAX_TRADABLE_ITEMS, TradeFrame, UseContainerItem = MAX_TRADABLE_ITEMS, TradeFrame, UseContainerItem
 local SendChatMessage, SendSystemMessage = SendChatMessage, SendSystemMessage
-local C_GuildInfo, LOOT_ITEM_SELF = C_GuildInfo, LOOT_ITEM_SELF
+local LOOT_ITEM_SELF = LOOT_ITEM_SELF
 local UIDropDownMenu_AddButton = UIDropDownMenu_AddButton
 local UIDropDownMenu_CreateInfo = UIDropDownMenu_CreateInfo
 local UIDropDownMenu_SetWidth = UIDropDownMenu_SetWidth
@@ -79,7 +79,10 @@ function Master:CreateWindow()
   openClientButton:SetText("Open Client")
   openClientButton:SetPoint("TOPLEFT", 16, -16)
   openClientButton:SetSize(100, 22)
-  openClientButton:SetScript("OnClick", function() NotaLoot:Broadcast(NotaLoot.MESSAGE.OPEN_CLIENT) end)
+  openClientButton:SetScript("OnClick", function()
+    NotaLoot:Broadcast(NotaLoot.MESSAGE.OPEN_CLIENT)
+    NotaLoot.client:Show()
+  end)
 
   local instructions = CreateFrame("Frame", nil, window.frame)
   instructions:SetAllPoints(window.content)
@@ -239,12 +242,11 @@ function Master:ConfigureItemDropdown(item, level, menuList)
     end
   else -- Sub menus
     local menuInfo = UIDropDownMenu_CreateInfo()
-    local count = 0
-    local availableItemPlayers = {}
+    local biddingPlayers = {}
+
     for player, bid in pairs(itemBids) do
       if menuList == bid then
-        table.insert(availableItemPlayers, player)
-        count = count + 1
+        table.insert(biddingPlayers, player)
 
         menuInfo.text = player
         menuInfo.func = function()
@@ -254,26 +256,20 @@ function Master:ConfigureItemDropdown(item, level, menuList)
         UIDropDownMenu_AddButton(menuInfo, level)
       end
     end
-    if count > 0 then
-      UIDropDownMenu_AddButton(self:GetRandomizeButtonInfo(item, availableItemPlayers), level)
+
+    -- If more than 1 player has bid, show the Randomize option
+    if #biddingPlayers > 1 then
+      menuInfo.icon = "interface/buttons/ui-grouploot-dice-up"
+      menuInfo.text = "Randomize"
+      menuInfo.func = function()
+        CloseDropDownMenus()
+
+        local randomWinner = biddingPlayers[math.random(1, #biddingPlayers)]
+        self:AssignItem(item, randomWinner, true)
+      end
+      UIDropDownMenu_AddButton(menuInfo, level)
     end
   end
-end
-
-function Master:GetRandomizeButtonInfo(item, players)
-  local buttonInfo = UIDropDownMenu_CreateInfo()
-
-  buttonInfo.icon = "interface/buttons/ui-grouploot-dice-up"
-  buttonInfo.text = "Randomize"
-
-  local winner = players[math.random(1, #players)]
-
-  buttonInfo.func = function()
-    CloseDropDownMenus()
-    self:AssignItem(item, winner, true)
-  end
-
-  return buttonInfo
 end
 
 function Master:ConfigureSessionsDropdown(level, menuList)
@@ -354,12 +350,9 @@ end
 
 function Master:ConfirmViewRequest(sender)
   -- Check whether the requester is a guild officer that should be allowed automatically
-  if IsInGuild() and NotaLoot:GetPref("AutoAllowOfficers", true) then
-    local senderRank = NotaLoot:GetGuildRank(sender)
-    if senderRank and C_GuildInfo.GuildControlGetRankFlags(senderRank)[4] then
-      self:AllowViewRequest(sender)
-      return
-    end
+  if NotaLoot:GetPref("AutoAllowOfficers", true) and NotaLoot:IsGuildOfficer(sender) then
+    self:AllowViewRequest(sender)
+    return
   end
 
   -- Show confirmation dialog for all other requests
@@ -454,15 +447,16 @@ function Master:OnAssignItem(item, winner, isByRandom)
   if not self.session.owner then
     NotaLoot:Broadcast(NotaLoot.MESSAGE.ASSIGN_ITEM, { index, winner })
     NotaLoot.client:OnAssignItem(NotaLoot.player, index, winner)
+    self:ReloadItem(item)
   end
 
-  local stringFormat = ""
+  local msgFormat = ""
   if isByRandom == true then
-    stringFormat = "Assigned %s to %s by Randomize"
+    msgFormat = "Assigned %s to %s by Randomize"
   else
-    stringFormat = "Assigned %s to %s"
+    msgFormat = "Assigned %s to %s"
   end
-  local msg = string.format(stringFormat, item.link, winner)
+  local msg = string.format(msgFormat, item.link, winner)
   local useSystemMessage = true
 
   if NotaLoot:GetPref("AnnounceAssign") then

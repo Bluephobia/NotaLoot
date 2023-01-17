@@ -9,6 +9,7 @@ local pairs, print, table, type, unpack = pairs, print, table, type, unpack
 local C_Timer, FlashClientIcon, IsInGroup = C_Timer, FlashClientIcon, IsInGroup
 local GetAddOnMetadata, InCombatLockdown, UnitName = GetAddOnMetadata, InCombatLockdown, UnitName
 local GetNumGuildMembers, GetGuildRosterInfo = GetNumGuildMembers, GetGuildRosterInfo
+local IsInGuild, C_GuildInfo = IsInGuild, C_GuildInfo
 local RaidNotice_AddMessage, RaidWarningFrame = RaidNotice_AddMessage, RaidWarningFrame
 
 -- Addon setup
@@ -306,6 +307,12 @@ function NotaLoot:GetGuildRank(playerName)
   end
 
   return nil
+end
+
+function NotaLoot:IsGuildOfficer(playerName)
+  if not IsInGuild() then return false end
+  local playerRank = NotaLoot:GetGuildRank(playerName)
+  return playerRank and C_GuildInfo.GuildControlGetRankFlags(playerRank)[4]
 end
 
 function NotaLoot:AddMessageSystem(target)
