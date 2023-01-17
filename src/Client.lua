@@ -307,7 +307,9 @@ function Client:OnAssignItem(sender, index, winner)
   session:AssignItem(item, winner)
 
   if session.owner and item.link and winner then
-    SendSystemMessage(string.format("%s assigned %s to %s", session.owner, item.link, winner))
+    if session.owner ~= NotaLoot.player then
+      SendSystemMessage(string.format("%s assigned %s to %s", session.owner, item.link, winner))
+    end
 
     if winner == NotaLoot.player then
       NotaLoot:NotifyLocal(string.format("You won %s", item.link))
