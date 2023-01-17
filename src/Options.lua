@@ -61,25 +61,8 @@ function NotaLoot:RegisterOptionsTable()
           },
         },
       },
-      client = {
-        order = 1,
-        name = "Client Settings",
-        type = "group",
-        inline = true,
-        args = {
-          showClient = {
-            order = 0,
-            name = "Restrict Open Client to Officers",
-            desc = "If enabled, the loot window will only be able to be automatically shown by officers in your guild.",
-            type = "toggle",
-            width = 2,
-            set = function(_, val) self:SetPref("ShowClientOfficers", val) end,
-            get = function() return self:GetPref("ShowClientOfficers") end,
-          }
-        }
-      },
       devTools = {
-        order = 2,
+        order = 1,
         name = "Developer Tools",
         type = "group",
         inline = true,
