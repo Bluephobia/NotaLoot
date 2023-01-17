@@ -239,8 +239,13 @@ function Master:ConfigureItemDropdown(item, level, menuList)
     end
   else -- Sub menus
     local menuInfo = UIDropDownMenu_CreateInfo()
+    local count = 0
+    local availableItemPlayers = {}
     for player, bid in pairs(itemBids) do
       if menuList == bid then
+        table.insert(availableItemPlayers, player)
+        count = count + 1
+
         menuInfo.text = player
         menuInfo.func = function()
           CloseDropDownMenus()
@@ -249,7 +254,26 @@ function Master:ConfigureItemDropdown(item, level, menuList)
         UIDropDownMenu_AddButton(menuInfo, level)
       end
     end
+    if count > 0 then
+      UIDropDownMenu_AddButton(self:GetRandomizeButtonInfo(item, availableItemPlayers), level)
+    end
   end
+end
+
+function Master:GetRandomizeButtonInfo(item, players)
+  local buttonInfo = UIDropDownMenu_CreateInfo()
+
+  buttonInfo.icon = "interface/buttons/ui-grouploot-dice-up"
+  buttonInfo.text = "Randomize"
+
+  local winner = players[math.random(1, #players)]
+
+  buttonInfo.func = function()
+    CloseDropDownMenus()
+    self:AssignItem(item, winner, true)
+  end
+
+  return buttonInfo
 end
 
 function Master:ConfigureSessionsDropdown(level, menuList)
@@ -280,8 +304,8 @@ function Master:CreateSession()
   session:RegisterMessage(NotaLoot.MESSAGE.BID_ITEM, function(_, _, item)
     self:ReloadItem(item)
   end)
-  session:RegisterMessage(NotaLoot.MESSAGE.ASSIGN_ITEM, function(_, _, item, winner)
-    self:OnAssignItem(item, winner)
+  session:RegisterMessage(NotaLoot.MESSAGE.ASSIGN_ITEM, function(_, _, item, winner, isByRandom)
+    self:OnAssignItem(item, winner, isByRandom)
   end)
   session:RegisterMessage(NotaLoot.MESSAGE.DELETE_ITEM, function(_, _, index)
     self:OnDeleteItem(index)
@@ -360,12 +384,12 @@ function Master:DeclineViewRequest(sender)
   NotaLoot:Whisper(NotaLoot.MESSAGE.VIEW_RESPONSE, "false", sender)
 end
 
-function Master:AssignItem(item, player)
+function Master:AssignItem(item, player, isByRandom)
   if self.session.owner then
     NotaLoot:Info("Items can only be assigned by", self.session.owner)
     return
   end
-  self.session:AssignItem(item, player)
+  self.session:AssignItem(item, player, isByRandom)
 end
 
 function Master:ReloadItem(item)
@@ -423,7 +447,7 @@ function Master:OnDeleteItem(index)
   end
 end
 
-function Master:OnAssignItem(item, winner)
+function Master:OnAssignItem(item, winner, isByRandom)
   local index = self.session:GetIndexOfItem(item)
   if not index or not winner then return end
 
@@ -432,7 +456,13 @@ function Master:OnAssignItem(item, winner)
     NotaLoot.client:OnAssignItem(NotaLoot.player, index, winner)
   end
 
-  local msg = string.format("Assigned %s to %s", item.link, winner)
+  local stringFormat = ""
+  if isByRandom == true then
+    stringFormat = "Assigned %s to %s by Randomize"
+  else
+    stringFormat = "Assigned %s to %s"
+  end
+  local msg = string.format(stringFormat, item.link, winner)
   local useSystemMessage = true
 
   if NotaLoot:GetPref("AnnounceAssign") then
