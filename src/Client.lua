@@ -47,8 +47,11 @@ end
 
 function Client:CreateWindow()
   local window = NotaLoot.GUI:CreateWindow("NotaLootClient", "NotaLoot - v"..NotaLoot.version)
-  window.frame:SetMinResize(420, 300)
   window.content.yOffset = -25
+
+  if window.frame.SetMinResize then
+    window.frame:SetMinResize(420, 300)
+  end
 
   local filterButton = CreateFrame("Button", nil, window.frame, "UIPanelButtonTemplate")
   filterButton:SetNormalFontObject("GameFontNormalSmall2")

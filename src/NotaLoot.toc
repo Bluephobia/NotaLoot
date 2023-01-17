@@ -1,8 +1,8 @@
-## Interface: 30400
+## Interface: 30401
 ## Title: Nota Loot
 ## Notes: Loot distribution helper developed for nota
 ## Author: Bluephobia
-## Version: 3.2.0
+## Version: 3.3.0
 ## SavedVariables: NotaLootPrefs
 
 embeds.xml

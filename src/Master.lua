@@ -12,9 +12,9 @@ local string, table, tonumber = string, table, tonumber
 
 -- WoW APIs
 local CloseDropDownMenus, CreateFrame, InCombatLockdown = CloseDropDownMenus, CreateFrame, InCombatLockdown
-local MAX_TRADABLE_ITEMS, TradeFrame, UseContainerItem = MAX_TRADABLE_ITEMS, TradeFrame, UseContainerItem
+local LOOT_ITEM_SELF, MAX_TRADABLE_ITEMS, TradeFrame = LOOT_ITEM_SELF, MAX_TRADABLE_ITEMS, TradeFrame
 local SendChatMessage, SendSystemMessage = SendChatMessage, SendSystemMessage
-local LOOT_ITEM_SELF = LOOT_ITEM_SELF
+local UseContainerItem = C_Container and C_Container.UseContainerItem or UseContainerItem
 local UIDropDownMenu_AddButton = UIDropDownMenu_AddButton
 local UIDropDownMenu_CreateInfo = UIDropDownMenu_CreateInfo
 local UIDropDownMenu_SetWidth = UIDropDownMenu_SetWidth
@@ -66,8 +66,11 @@ end
 
 function Master:CreateWindow()
   local window = NotaLoot.GUI:CreateWindow("NotaLootMaster", "NotaLoot Master - v"..NotaLoot.version)
-  window.frame:SetMinResize(520, 300)
   window.content.yOffset = -20
+
+  if window.frame.SetMinResize then
+    window.frame:SetMinResize(520, 300)
+  end
 
   local clearButton = CreateFrame("Button", nil, window.frame, "UIPanelButtonTemplate")
   clearButton:SetPoint("TOPRIGHT", -16, -16)

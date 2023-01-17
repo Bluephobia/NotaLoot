@@ -5,7 +5,8 @@ local _G, setmetatable, table, tonumber = _G, setmetatable, table, tonumber
 
 -- WoW APIs
 local C_Item, BItem, GetItemInfo, ItemLocation = C_Item, Item, GetItemInfo, ItemLocation
-local GetContainerNumSlots = GetContainerNumSlots
+local GetContainerItemID = C_Container and C_Container.GetContainerItemID or GetContainerItemID
+local GetContainerNumSlots = C_Container and C_Container.GetContainerNumSlots or GetContainerNumSlots
 local BIND_TRADE_TIME_REMAINING, NUM_BAG_SLOTS = BIND_TRADE_TIME_REMAINING, NUM_BAG_SLOTS
 local CreateFrame, UIParent = CreateFrame, UIParent
 
