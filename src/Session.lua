@@ -130,8 +130,10 @@ function Session:RegisterBid(player, item, bid)
   end
 end
 
-function Session:AssignItem(item, winner)
+function Session:AssignItem(item, winner, isByRandom)
   if not item or self.assignments[item] == winner then return end
+
+  isByRandom = isByRandom or false
 
   self.assignments[item] = winner
   item:SetWinner(winner)
@@ -140,7 +142,7 @@ function Session:AssignItem(item, winner)
     self.log:Write(item, self:GetBidForPlayer(item, winner))
   end
 
-  self:SendMessage(NotaLoot.MESSAGE.ASSIGN_ITEM, item, winner)
+  self:SendMessage(NotaLoot.MESSAGE.ASSIGN_ITEM, item, winner, isByRandom)
 end
 
 function Session:GetItemsAssignedToPlayer(player)
