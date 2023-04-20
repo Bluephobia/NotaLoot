@@ -72,7 +72,9 @@ function Master:CreateWindow()
   local window = NotaLoot.GUI:CreateWindow("NotaLootMaster", "NotaLoot Master - v"..NotaLoot.version)
   window.content.yOffset = -20
 
-  if window.frame.SetMinResize then
+  if window.frame.SetResizeBounds then -- WoW 10.0
+    window.frame:SetResizeBounds(520, 300)
+  else
     window.frame:SetMinResize(520, 300)
   end
 
@@ -480,11 +482,11 @@ function Master:OnAssignItem(item, winner, isByRandom)
       SendChatMessage(msg, "CHANNEL", nil, GetChannelName(announceChannel))
       useSystemMessage = false
     end
-end
+  end
 
-if useSystemMessage then
-  SendSystemMessage(msg)
-end
+  if useSystemMessage then
+    SendSystemMessage(msg)
+  end
 end
 
 function Master:OnRemoteInit(sender, version)

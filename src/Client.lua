@@ -49,7 +49,9 @@ function Client:CreateWindow()
   local window = NotaLoot.GUI:CreateWindow("NotaLootClient", "NotaLoot - v"..NotaLoot.version)
   window.content.yOffset = -25
 
-  if window.frame.SetMinResize then
+  if window.frame.SetResizeBounds then -- WoW 10.0
+    window.frame:SetResizeBounds(420, 300)
+  else
     window.frame:SetMinResize(420, 300)
   end
 
