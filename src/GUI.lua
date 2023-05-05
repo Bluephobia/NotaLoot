@@ -70,6 +70,12 @@ function GUI:CreateWindow(name, title)
     window:SetPoint("BOTTOM", 0, NotaLoot:GetPref(yKey))
   end
 
+  if window.frame.SetResizeBounds then -- WoW 10.0
+    window.frame:SetResizeBounds(520, 300)
+  else
+    window.frame:SetMinResize(520, 300)
+  end
+
   -- Save prefs before a reload or logout
   window.frame:RegisterEvent("PLAYER_LOGOUT")
   window.frame:HookScript("OnEvent", function(frame, event)
@@ -98,12 +104,21 @@ function GUI:CreateWindow(name, title)
   window.table = GUI:CreateTable()
   tableContainer:AddChild(window.table)
 
+  window.statustext:ClearAllPoints()
+  window.statustext:SetPoint("LEFT", 12, 0)
+
+  local statustext2 = window.statustext:GetParent():CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  statustext2:SetPoint("LEFT", window.statustext, "RIGHT", 5, 0)
+  statustext2:SetTextColor(0.5, 0.5, 0.5, 1)
+  window.statustext2 = statustext2
+
+  local tipText2 = window.statustext:GetParent():CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  tipText2:SetPoint("RIGHT", -7, 0)
+  tipText2:SetTextColor(0.5, 0.5, 0.5, 1)
+  window.tipText2 = tipText2
+
   local tipText = window.statustext:GetParent():CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  tipText:SetPoint("TOPRIGHT", -7, -2)
-  tipText:SetPoint("BOTTOMLEFT", 7, 2)
-  tipText:SetHeight(20)
-  tipText:SetJustifyH("RIGHT")
-  tipText:SetTextColor(0.5, 0.5, 0.5, 1)
+  tipText:SetPoint("RIGHT", tipText2, "LEFT", -5, 0)
   window.tipText = tipText
 
   table.insert(UISpecialFrames, name)
@@ -252,17 +267,7 @@ end
 
 function Table:DeleteRowAtIndex(index, reindex)
   local row = self.rows[index]
-
-  if reindex then
-    -- Shift every index forward
-    local maxIndex = self:GetMaxIndex()
-    for i = index + 1, maxIndex do
-      self.rows[i - 1] = self.rows[i]
-    end
-    self.rows[maxIndex] = nil
-  else
-    self.rows[index] = nil
-  end
+  self.rows[index] = nil
 
   if not row then return end
   row:Release()

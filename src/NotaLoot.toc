@@ -10,6 +10,7 @@ NotaLoot.lua
 Log.lua
 MessageQueue.lua
 ItemRow.lua
+SearchField.lua
 GUI.lua
 Item.lua
 Session.lua

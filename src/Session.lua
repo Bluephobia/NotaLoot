@@ -61,7 +61,7 @@ function Session:AddItem(item, index, skipLog)
     return false
   end
 
-  index = index or (self:GetItemCount() + 1)
+  index = index or self:GetNextIndex()
   self.items[index] = item
 
   if item:GetStatus() == NotaLoot.STATUS.NONE then
@@ -86,12 +86,20 @@ function Session:GetIndexOfItem(item)
   return nil
 end
 
-function Session:GetItemCount()
+function Session:GetNextIndex()
   local maxIndex = 0
   for index in pairs(self.items) do
     maxIndex = math.max(maxIndex, index)
   end
-  return maxIndex
+  return maxIndex + 1
+end
+
+function Session:GetItemCount()
+  local count = 0
+  for _, item in pairs(self.items) do
+    count = count + 1
+  end
+  return count
 end
 
 function Session:GetBidForPlayer(item, player)
@@ -162,24 +170,19 @@ function Session:RemoveItem(item)
 end
 
 function Session:RemoveItemAtIndex(index)
-  local itemCount = self:GetItemCount()
-  if index < 0 or index > itemCount then return end
+  local maxIndex = self:GetNextIndex() - 1
+  if index < 1 or index > maxIndex then return end
 
   local item = self.items[index]
 
-  -- Shift every item forward
-  for i = index + 1, itemCount do
-    self.items[i - 1] = self.items[i]
-  end
-  self.items[itemCount] = nil
-
   if item then
+    self.items[index] = nil
     self.bids[item] = nil
     self.assignments[item] = nil
-  end
 
-  self:SendMessage(NotaLoot.MESSAGE.DELETE_ITEM, index, item)
-  self:SendMessage(NotaLoot.MESSAGE.ON_CHANGE, index)
+    self:SendMessage(NotaLoot.MESSAGE.DELETE_ITEM, index, item)
+    self:SendMessage(NotaLoot.MESSAGE.ON_CHANGE, index)
+  end
 end
 
 function Session:RemoveItemsWithoutLocation()

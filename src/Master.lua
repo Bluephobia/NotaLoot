@@ -72,12 +72,6 @@ function Master:CreateWindow()
   local window = NotaLoot.GUI:CreateWindow("NotaLootMaster", "NotaLoot Master - v"..NotaLoot.version)
   window.content.yOffset = -20
 
-  if window.frame.SetResizeBounds then -- WoW 10.0
-    window.frame:SetResizeBounds(520, 300)
-  else
-    window.frame:SetMinResize(520, 300)
-  end
-
   local clearButton = CreateFrame("Button", nil, window.frame, "UIPanelButtonTemplate")
   clearButton:SetPoint("TOPRIGHT", -16, -16)
   clearButton:SetSize(100, 22)
@@ -454,8 +448,8 @@ function Master:OnAssignItem(item, winner, isByRandom)
   if not index or not winner then return end
 
   if not self.session.owner then
-    NotaLoot:Broadcast(NotaLoot.MESSAGE.ASSIGN_ITEM, { index, winner })
-    NotaLoot.client:OnAssignItem(NotaLoot.player, index, winner)
+    NotaLoot:Broadcast(NotaLoot.MESSAGE.ASSIGN_ITEM, { index, winner, isByRandom and "true" or "false" })
+    NotaLoot.client:OnAssignItem(NotaLoot.player, index, winner, isByRandom)
     self:ReloadItem(item)
   end
 
@@ -684,5 +678,3 @@ function Master:ContainerFrameItemButton_OnModifiedClick(button, type)
 
   self.session:AddItem(item)
 end
-
-NotaLoot.master = Master:Create()

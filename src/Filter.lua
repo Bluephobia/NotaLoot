@@ -325,3 +325,55 @@ function ClassFilter:Evaluate(item)
     return false
   end
 end
+
+local NameFilter = Filter:Create()
+function Filter:CreateForName()
+  return NameFilter:Create({
+    query = nil
+  })
+end
+
+function NameFilter:SetQuery(query)
+  self.query = query and string.lower(query) or nil
+end
+
+function NameFilter:Evaluate(item)
+  if not self.query or self.query == "" then return true end
+  return string.find(string.lower(item.name), self.query)
+end
+
+local CompositeFilter = Filter:Create()
+function Filter:CreateComposite()
+  return CompositeFilter:Create({
+    filters = {}
+  })
+end
+
+function CompositeFilter:AddFilter(filter)
+  if not self:ContainsFilter(filter) then
+    table.insert(self.filters, filter)
+  end
+end
+
+function CompositeFilter:RemoveFilter(filter)
+  for i = 1, #self.filters do
+    if self.filters[i] == filter then
+      table.remove(self.filters, i)
+      return
+    end
+  end
+end
+
+function CompositeFilter:ContainsFilter(filter)
+  for i = 1, #self.filters do
+    if self.filters[i] == filter then return true end
+  end
+  return false
+end
+
+function CompositeFilter:Evaluate(item)
+  for i = 1, #self.filters do
+    if not self.filters[i]:Evaluate(item) then return false end
+  end
+  return true
+end

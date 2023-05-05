@@ -3,14 +3,17 @@ local LibSerialize = LibStub("LibSerialize")
 local LibDeflate = LibStub("LibDeflate")
 
 -- Lua APIs
-local pairs, print, table, type, unpack = pairs, print, table, type, unpack
+local pairs, print, select, table, type, unpack = pairs, print, select, table, type, unpack
 
 -- WoW APIs
 local C_Timer, FlashClientIcon, IsInGroup = C_Timer, FlashClientIcon, IsInGroup
-local GetAddOnMetadata, InCombatLockdown, UnitName = GetAddOnMetadata, InCombatLockdown, UnitName
+local InCombatLockdown, UnitName = InCombatLockdown, UnitName
 local GetNumGuildMembers, GetGuildRosterInfo = GetNumGuildMembers, GetGuildRosterInfo
 local IsInGuild, C_GuildInfo = IsInGuild, C_GuildInfo
 local RaidNotice_AddMessage, RaidWarningFrame = RaidNotice_AddMessage, RaidWarningFrame
+
+-- 3.4.2 support
+local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
 
 -- Addon setup
 
@@ -20,6 +23,8 @@ local CommPrefix = AddonName..Version:sub(Version:find("[^.]*"))
 
 local NotaLoot = LibStub("AceAddon-3.0"):NewAddon(AddonName, "AceComm-3.0", "AceEvent-3.0")
 NotaLoot.version = Version
+NotaLoot.player = UnitName("player")
+NotaLoot.playerClass = select(3, UnitClass("player"))
 -- NotaLoot.debugPrint = true
 
 -- Constants
@@ -85,12 +90,12 @@ function NotaLoot:OnInitialize()
   self:RegisterEvent("PLAYER_ENTERING_WORLD")
   self:RegisterEvent("GROUP_JOINED")
   self:RegisterEvent("GROUP_LEFT")
+
+  self.client = NotaLoot.Client:Create()
+  self.master = NotaLoot.Master:Create()
 end
 
 function NotaLoot:OnEnable()
-  self.player = UnitName("player")
-  self.playerClass = select(3, UnitClass("player"))
-
   -- Addon messages are rate limited
   -- To work around this, send at most 1 message every 750ms (empirical "safe" interval)
   -- In practice this mostly rate limits broadcast messages, but those can be combined anyway

@@ -19,6 +19,8 @@ function Client:Create()
   local client = {
     sessions = {},
     activeSession = nil,
+    filter = NotaLoot.Filter:CreateComposite(),
+    classFilter = NotaLoot.Filter:CreateForPlayerClassId(NotaLoot.playerClass),
   }
   setmetatable(client, Client)
 
@@ -29,8 +31,9 @@ function Client:Create()
   NotaLoot:RegisterMessage(NotaLoot.MESSAGE.ADD_ITEM, function(_, sender, index, encodedItem)
     client:OnAddItem(sender, tonumber(index), NotaLoot.Item:Decode(encodedItem))
   end)
-  NotaLoot:RegisterMessage(NotaLoot.MESSAGE.ASSIGN_ITEM, function(_, sender, index, winner)
-    client:OnAssignItem(sender, tonumber(index), winner)
+  NotaLoot:RegisterMessage(NotaLoot.MESSAGE.ASSIGN_ITEM, function(_, sender, index, winner, isByRandom)
+    local isByRandom = (isByRandom == "true")
+    client:OnAssignItem(sender, tonumber(index), winner, isByRandom)
   end)
   NotaLoot:RegisterMessage(NotaLoot.MESSAGE.DELETE_ITEM, function(_, sender, index)
     client:OnDeleteItem(sender, tonumber(index))
@@ -49,19 +52,23 @@ function Client:CreateWindow()
   local window = NotaLoot.GUI:CreateWindow("NotaLootClient", "NotaLoot - v"..NotaLoot.version)
   window.content.yOffset = -25
 
-  if window.frame.SetResizeBounds then -- WoW 10.0
-    window.frame:SetResizeBounds(420, 300)
-  else
-    window.frame:SetMinResize(420, 300)
-  end
+  local searchField = NotaLoot.SearchField:Create(window.frame)
+  searchField:SetPlaceholderText("Search items")
+  searchField:SetPoint("TOPLEFT", 20, -16)
+  searchField:SetWidth(145)
+  searchField:HookScript("OnTextChanged", function()
+    self:ReloadTable()
+    self:UpdateSessionInfo()
+  end)
+  self.filter:AddFilter(searchField:GetFilter())
 
-  local filterButton = CreateFrame("Button", nil, window.frame, "UIPanelButtonTemplate")
-  filterButton:SetNormalFontObject("GameFontNormalSmall2")
-  filterButton:SetHighlightFontObject("GameFontHighlightSmall2")
-  filterButton:SetPoint("TOPRIGHT", -14, -16)
-  filterButton:SetSize(105, 22)
-  filterButton:SetScript("OnClick", function() self:ToggleClassFilter(true) end)
-  window.filterButton = filterButton
+  local usableFilterButton = CreateFrame("Button", nil, window.frame, "UIPanelButtonTemplate")
+  usableFilterButton:SetNormalFontObject("GameFontNormalSmall2")
+  usableFilterButton:SetHighlightFontObject("GameFontHighlightSmall2")
+  usableFilterButton:SetPoint("TOPRIGHT", -16, -16)
+  usableFilterButton:SetSize(105, 22)
+  usableFilterButton:SetScript("OnClick", function() self:ToggleClassFilter(true) end)
+  window.usableFilterButton = usableFilterButton
 
   local sessionDropdown = AceGUI:Create("Dropdown")
   window:AddChild(sessionDropdown)
@@ -120,13 +127,14 @@ end
 -- GUI
 
 function Client:UpdateSessionInfo(reloadDropdown)
-  if not self.window or not self.window:IsShown() then return end
+  local window = self.window
+  if not window or not window:IsShown() then return end
 
   local activeSession = self.activeSession
   local sessionOwner = activeSession and activeSession.owner or nil
   local itemCount = activeSession and activeSession:GetItemCount() or 0
-  local rowCount = self.window.table:GetRowCount()
-  local dropdown = self.window.sessionDropdown
+  local rowCount = window.table:GetRowCount()
+  local dropdown = window.sessionDropdown
 
   if reloadDropdown then
     local sessionList = {}
@@ -145,13 +153,13 @@ function Client:UpdateSessionInfo(reloadDropdown)
     dropdown.frame:Hide()
   end
 
-  self.window:SetStatusText("Total Items: "..itemCount)
+  window:SetStatusText("Total Items: "..itemCount)
 
   if rowCount < itemCount then
     local filteredCount = itemCount - rowCount
-    self.window.tipText:SetText(string.format("%d filtered %s", filteredCount, filteredCount == 1 and "item" or "items"))
+    window.statustext2:SetText(string.format("(%d filtered)", filteredCount))
   else
-    self.window.tipText:SetText(nil)
+    window.statustext2:SetText(nil)
   end
 end
 
@@ -166,7 +174,7 @@ function Client:ReloadTable()
   if not self.activeSession then return end
 
   for index, item in pairs(self.activeSession.items) do
-    if not self.filter or self.filter:Evaluate(item) then
+    if self.filter:Evaluate(item) then
       table:CreateRow("NotaLootItemRow", index, item, function(r, i)
         self:ConfigureItemRow(r, i)
       end)
@@ -244,15 +252,15 @@ function Client:SetActiveSession(session)
 end
 
 function Client:ToggleClassFilter(reload)
-  if self.filter then
-    self.filter = nil
-    if self.window and self.window.filterButton then
-      self.window.filterButton:SetText("Hide Unusable")
+  if self.filter:ContainsFilter(self.classFilter) then
+    self.filter:RemoveFilter(self.classFilter)
+    if self.window and self.window.usableFilterButton then
+      self.window.usableFilterButton:SetText("Hide Unusable")
     end
   else
-    self.filter = NotaLoot.Filter:CreateForPlayerClassId(NotaLoot.playerClass)
-    if self.window and self.window.filterButton then
-      self.window.filterButton:SetText("Show Unusable")
+    self.filter:AddFilter(self.classFilter)
+    if self.window and self.window.usableFilterButton then
+      self.window.usableFilterButton:SetText("Show Unusable")
     end
   end
 
@@ -296,7 +304,7 @@ function Client:OnBidItem(session, item, bid, bidder)
   end
 end
 
-function Client:OnAssignItem(sender, index, winner)
+function Client:OnAssignItem(sender, index, winner, isByRandom)
   local session = self.sessions[sender]
   if not session then
     NotaLoot:Debug("Received", NotaLoot.MESSAGE.ASSIGN_ITEM, "for untracked session", sender)
@@ -310,7 +318,13 @@ function Client:OnAssignItem(sender, index, winner)
 
   if session.owner and item.link and winner then
     if session.owner ~= NotaLoot.player then
-      SendSystemMessage(string.format("%s assigned %s to %s", session.owner, item.link, winner))
+      local msg = string.format("%s assigned %s to %s", session.owner, item.link, winner)
+
+      if isByRandom then
+        msg = msg.." by Randomize"
+      end
+
+      SendSystemMessage(msg)
     end
 
     if winner == NotaLoot.player then
@@ -361,5 +375,3 @@ function Client:OnSessionChanged(session, reloadDropdown, index)
   -- UpdateSessionInfo relies on the table row count, so call after ReloadTable
   self:UpdateSessionInfo(reloadDropdown)
 end
-
-NotaLoot.client = Client:Create()
