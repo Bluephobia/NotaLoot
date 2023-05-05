@@ -348,7 +348,7 @@ function Client:OnDeleteItem(sender, index)
   session:RemoveItemAtIndex(index)
 
   if session == self.activeSession and self.window and self.window:IsShown() then
-    self.window.table:DeleteRowAtIndex(index, true)
+    self.window.table:DeleteRowAtIndex(index)
     self:UpdateSessionInfo()
   end
 end

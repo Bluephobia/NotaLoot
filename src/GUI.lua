@@ -256,16 +256,16 @@ function Table:ReloadRowAtIndex(index, data)
   end
 end
 
-function Table:DeleteRow(row, reindex)
+function Table:DeleteRow(row)
   for index, it in pairs(self.rows) do
     if it == row then
-      self:DeleteRowAtIndex(index, reindex)
+      self:DeleteRowAtIndex(index)
       break
     end
   end
 end
 
-function Table:DeleteRowAtIndex(index, reindex)
+function Table:DeleteRowAtIndex(index)
   local row = self.rows[index]
   self.rows[index] = nil
 
