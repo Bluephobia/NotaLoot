@@ -603,12 +603,24 @@ function Master:OnTradeOpened()
     return
   end
 
-  for i = 1, math.min(itemCount, MAX_TRADABLE_ITEMS) do
-    local item = items[i]
+  local itemIdx, tradeIdx = 1, 1
+
+  -- Add items to trade window
+  while itemIdx <= itemCount and tradeIdx <= MAX_TRADABLE_ITEMS do
+    local item = items[itemIdx]
+    itemIdx = itemIdx + 1
+
     item:UpdateLocation()
+
     if item.location then
+      -- Introducing a slight delay allows multiple tradeable soulbound items
+      -- to be added to the window. No delay results in only 1
       local bag, slot = item.location:GetBagAndSlot()
-      UseContainerItem(bag, slot)
+      C_Timer.After((tradeIdx - 1) * 0.05, function()
+        UseContainerItem(bag, slot)
+      end)
+
+      tradeIdx = tradeIdx + 1
     end
   end
 end
