@@ -68,8 +68,8 @@ function Session:AddItem(item, index, skipLog)
     item:SetStatus(NotaLoot.STATUS.BIDDING)
   end
 
-  self:SendMessage(NotaLoot.MESSAGE.ADD_ITEM, index, item)
-  self:SendMessage(NotaLoot.MESSAGE.ON_CHANGE, index)
+  self:FireMessage(NotaLoot.MESSAGE.ADD_ITEM, index, item)
+  self:FireMessage(NotaLoot.MESSAGE.ON_CHANGE, index)
 
   return true
 end
@@ -134,7 +134,7 @@ function Session:RegisterBid(player, item, bid)
   if itemBids[player] ~= bid then
     itemBids[player] = bid
     self.bids[item] = itemBids
-    self:SendMessage(NotaLoot.MESSAGE.BID_ITEM, item, bid, player)
+    self:FireMessage(NotaLoot.MESSAGE.BID_ITEM, item, bid, player)
   end
 end
 
@@ -150,7 +150,7 @@ function Session:AssignItem(item, winner, isByRandom)
     self.log:Write(item, self:GetBidForPlayer(item, winner))
   end
 
-  self:SendMessage(NotaLoot.MESSAGE.ASSIGN_ITEM, item, winner, isByRandom)
+  self:FireMessage(NotaLoot.MESSAGE.ASSIGN_ITEM, item, winner, isByRandom)
 end
 
 function Session:GetItemsAssignedToPlayer(player)
@@ -180,8 +180,8 @@ function Session:RemoveItemAtIndex(index)
     self.bids[item] = nil
     self.assignments[item] = nil
 
-    self:SendMessage(NotaLoot.MESSAGE.DELETE_ITEM, index, item)
-    self:SendMessage(NotaLoot.MESSAGE.ON_CHANGE, index)
+    self:FireMessage(NotaLoot.MESSAGE.DELETE_ITEM, index, item)
+    self:FireMessage(NotaLoot.MESSAGE.ON_CHANGE, index)
   end
 end
 
@@ -205,8 +205,8 @@ function Session:Clear()
   self.bids = {}
   self.assignments = {}
 
-  self:SendMessage(NotaLoot.MESSAGE.DELETE_ALL_ITEMS)
-  self:SendMessage(NotaLoot.MESSAGE.ON_CHANGE)
+  self:FireMessage(NotaLoot.MESSAGE.DELETE_ALL_ITEMS)
+  self:FireMessage(NotaLoot.MESSAGE.ON_CHANGE)
 end
 
 function Session:EncodeItems()
@@ -249,7 +249,7 @@ function Session:ImportItems(encodedItems)
     end
   end
 
-  self:SendMessage(NotaLoot.MESSAGE.ON_CHANGE)
+  self:FireMessage(NotaLoot.MESSAGE.ON_CHANGE)
 end
 
 function Session:ImportBids(encodedBids)
@@ -273,5 +273,5 @@ function Session:ImportBids(encodedBids)
     end
   end
 
-  self:SendMessage(NotaLoot.MESSAGE.ON_CHANGE)
+  self:FireMessage(NotaLoot.MESSAGE.ON_CHANGE)
 end

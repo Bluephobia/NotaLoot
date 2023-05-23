@@ -86,6 +86,7 @@ function NotaLoot:OnInitialize()
 
   self:RegisterComm(CommPrefix)
   self:RegisterOptionsTable()
+  self:AddMessageSystem(self)
 
   self:RegisterEvent("PLAYER_ENTERING_WORLD")
   self:RegisterEvent("GROUP_JOINED")
@@ -204,7 +205,7 @@ function NotaLoot:OnCommReceived(prefix, encodedPayload, channel, sender)
     local msg = table.remove(data, 1)
     if not msg then return end
 
-    self:SendMessage(msg, sender, unpack(data))
+    self:FireMessage(msg, sender, unpack(data))
   end
 end
 
@@ -327,20 +328,20 @@ function NotaLoot:AddMessageSystem(target)
   messageSystem.callbacks = CallbackHandler:New(messageSystem)
   target.messageSystem = messageSystem
 
-  target.RegisterMessage = messageSystem.RegisterCallback
-  target.UnregisterMessage = messageSystem.UnregisterCallback
-  target.UnregisterAllMessages = messageSystem.UnregisterAllCallbacks
-  target.SendMessage = function(self, msg, ...) messageSystem.callbacks:Fire(msg, self, ...) end
+  target.RegisterCallback = messageSystem.RegisterCallback
+  target.UnregisterCallback = messageSystem.UnregisterCallback
+  target.UnregisterAllCallbacks = messageSystem.UnregisterAllCallbacks
+  target.FireMessage = function(self, msg, ...) messageSystem.callbacks:Fire(msg, self, ...) end
 end
 
 function NotaLoot:HookMessageSystem(target, callback)
   if not target.messageSystem or target.messageSystem.hooked then return end
   target.messageSystem.hooked = true
 
-  local sendMessage = target.SendMessage
-  target.SendMessage = function(self, msg, ...)
+  local fireMessage = target.FireMessage
+  target.FireMessage = function(self, msg, ...)
     callback(msg, self, ...)
-    sendMessage(self, msg, ...)
+    fireMessage(self, msg, ...)
   end
 end
 

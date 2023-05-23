@@ -203,8 +203,8 @@ function Table:CreateRow(className, index, data, config)
   rowInfo.config = config
 
   row:SetCallback("OnRelease", function()
-    if rowInfo.data and rowInfo.data.UnregisterMessage then
-      rowInfo.data:UnregisterMessage(NotaLoot.MESSAGE.ON_CHANGE)
+    if rowInfo.data and rowInfo.data.UnregisterCallback then
+      rowInfo.data:UnregisterCallback(NotaLoot.MESSAGE.ON_CHANGE)
     end
   end)
 
@@ -239,14 +239,14 @@ function Table:ReloadRowAtIndex(index, data)
 
   local rowInfo = row:GetUserDataTable()
 
-  if rowInfo.data and rowInfo.data.UnregisterMessage then
-    rowInfo.data:UnregisterMessage(NotaLoot.MESSAGE.ON_CHANGE)
+  if rowInfo.data and rowInfo.data.UnregisterCallback then
+    rowInfo.data:UnregisterCallback(NotaLoot.MESSAGE.ON_CHANGE)
   end
 
   rowInfo.data = data or rowInfo.data
 
-  if rowInfo.data and rowInfo.data.RegisterMessage then
-    rowInfo.data:RegisterMessage(NotaLoot.MESSAGE.ON_CHANGE, function(_, item)
+  if rowInfo.data and rowInfo.data.RegisterCallback then
+    rowInfo.data:RegisterCallback(NotaLoot.MESSAGE.ON_CHANGE, function()
       if rowInfo.table then rowInfo.table:ReloadRow(row) end
     end)
   end

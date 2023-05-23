@@ -34,7 +34,7 @@ local methods = {
 
   ["OnRelease"] = function(self)
     self.dropdownConfig = nil
-    self:UnregisterAllMessages()
+    self:UnregisterAllCallbacks()
   end,
 
   ["OnWidthSet"] = function(self, width)
@@ -117,7 +117,7 @@ local methods = {
   end,
 
   ["OnDeletePressed"] = function(self)
-    self:SendMessage(NotaLoot.MESSAGE.DELETE_ITEM)
+    self:FireMessage(NotaLoot.MESSAGE.DELETE_ITEM)
   end,
 }
 

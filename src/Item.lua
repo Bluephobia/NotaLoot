@@ -61,7 +61,7 @@ function Item:PopulateStaticProperties()
   if not self.name then
     NotaLoot:Error("Invalid itemId", self.id)
   end
-  self:SendMessage(NotaLoot.MESSAGE.ON_CHANGE)
+  self:FireMessage(NotaLoot.MESSAGE.ON_CHANGE)
 end
 
 function Item:IsTradeable()
@@ -91,7 +91,7 @@ function Item:SetStatus(status)
   if status ~= info.status then
     info.status = status
     self.info = info
-    self:SendMessage(NotaLoot.MESSAGE.ON_CHANGE)
+    self:FireMessage(NotaLoot.MESSAGE.ON_CHANGE)
   end
 end
 
@@ -109,7 +109,7 @@ function Item:SetWinner(winner)
     end
 
     self.info = info
-    self:SendMessage(NotaLoot.MESSAGE.ON_CHANGE)
+    self:FireMessage(NotaLoot.MESSAGE.ON_CHANGE)
   end
 end
 
