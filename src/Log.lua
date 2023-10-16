@@ -88,11 +88,11 @@ function SessionLog:Dump()
   local assignmentCount = #self.assignments
   if assignmentCount == 0 then return "" end
 
-  local header = "date,itemID,itemName,player,note"
+  local header = "date;itemID;itemName;player;note"
   local lines = { header }
 
   for i = 1, assignmentCount do
-    table.insert(lines, table.concat(self.assignments[i], ","))
+    table.insert(lines, table.concat(self.assignments[i], ";"))
   end
 
   return table.concat(lines, "\n")
