@@ -95,7 +95,6 @@ function Master:CreateWindow()
   instructionsText:SetText("Alt + Left-Click items in your inventory\nto add them to the loot session.\n\n\nOr you can request to view another loot master's session using the dropdown below.")
   instructionsText:SetSize(300, 100)
   instructionsText:SetJustifyH("CENTER")
-  instructionsText:SetJustifyV("CENTER")
   instructionsText:SetPoint("CENTER", 0, 20)
 
   local sessionsDropdown = CreateFrame("Frame", "NotaLootViewableSessionsDropdown", instructions, "UIDropDownMenuTemplate")
