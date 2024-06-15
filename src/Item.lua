@@ -6,6 +6,7 @@ local _G, setmetatable, table, tonumber = _G, setmetatable, table, tonumber
 -- WoW APIs
 local C_Item, BItem, GetItemInfo, ItemLocation = C_Item, Item, GetItemInfo, ItemLocation
 local GetContainerItemID = C_Container and C_Container.GetContainerItemID or GetContainerItemID
+local GetContainerItemLink = C_Container and C_Container.GetContainerItemLink or GetContainerItemLink
 local GetContainerNumSlots = C_Container and C_Container.GetContainerNumSlots or GetContainerNumSlots
 local BIND_TRADE_TIME_REMAINING, NUM_BAG_SLOTS = BIND_TRADE_TIME_REMAINING, NUM_BAG_SLOTS
 local CreateFrame, UIParent = CreateFrame, UIParent
@@ -33,14 +34,15 @@ function Item:CreateForId(itemId)
   if C_Item.IsItemDataCachedByID(itemId) then
     item:PopulateStaticProperties()
   else
-    BItem:CreateFromItemID(itemId):ContinueOnItemLoad(function() item:PopulateStaticProperties() end)
+    BItem:CreateFromItemLink(itemId):ContinueOnItemLoad(function() item:PopulateStaticProperties() end)
   end
 
   return item
 end
 
 function Item:CreateFromContainer(bag, slot)
-  local itemId = GetContainerItemID(bag, slot)
+  --local itemId = GetContainerItemID(bag, slot)
+  local itemId = GetContainerItemLink(bag, slot)
   if not itemId then return nil end
 
   local item = Item:CreateForId(itemId)
@@ -155,7 +157,7 @@ end
 function Item:Decode(encodedStr)
   local elements = NotaLoot:Split(encodedStr, NotaLoot.SEPARATOR.ELEMENT)
 
-  local item = self:CreateForId(tonumber(elements[1]))
+  local item = self:CreateForId(elements[1])
   item.info = { status = tonumber(elements[2]), winner = elements[3] }
 
   return item

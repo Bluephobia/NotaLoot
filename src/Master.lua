@@ -654,10 +654,10 @@ function Master:OnLootMessage(text, ...)
   local player = select(4, ... )
   if player ~= NotaLoot.player then return end
 
-  local _, itemId = text:match(LOOT_ITEM_SELF:sub(1, -4)..".*|Hitem:((%d+).-)|h")
+  local itemId = text:match(LOOT_ITEM_SELF:sub(1, -4)..".*|Hitem:([^|]+)|h%[([^%]]+)%]|h")
   if not itemId then return end
 
-  local item = NotaLoot.Item:CreateForId(tonumber(itemId))
+  local item = NotaLoot.Item:CreateForId(itemId)
   if item.quality >= 4 then -- Only auto add epic or higher quality
     table.insert(self.pendingAutoAddedItems, item)
   end

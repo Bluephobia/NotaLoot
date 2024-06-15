@@ -61,7 +61,7 @@ NotaLoot.MESSAGE = {
 NotaLoot.SEPARATOR = {
   ARG = ";",
   ELEMENT = ",",
-  LIST_ELEMENT = ":",
+  LIST_ELEMENT = "^",
   MESSAGE = "&",
   SUBLIST_ELEMENT = "/",
 }
