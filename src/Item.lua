@@ -5,7 +5,7 @@ local _G, setmetatable, table, tonumber = _G, setmetatable, table, tonumber
 
 -- WoW APIs
 local C_Item, BItem, GetItemInfo, ItemLocation = C_Item, Item, GetItemInfo, ItemLocation
-local GetContainerItemID = C_Container and C_Container.GetContainerItemID or GetContainerItemID
+local GetContainerItemLink = C_Container and C_Container.GetContainerItemLink or GetContainerItemLink
 local GetContainerNumSlots = C_Container and C_Container.GetContainerNumSlots or GetContainerNumSlots
 local BIND_TRADE_TIME_REMAINING, NUM_BAG_SLOTS = BIND_TRADE_TIME_REMAINING, NUM_BAG_SLOTS
 local CreateFrame, UIParent = CreateFrame, UIParent
@@ -19,7 +19,12 @@ NotaLoot.Item = Item
 local Tooltip = CreateFrame("GameTooltip", "NotaLootItemTooltip", nil, "GameTooltipTemplate")
 Tooltip:SetOwner(UIParent, "ANCHOR_NONE")
 
-function Item:CreateForId(itemId)
+function Item:CreateForLink(itemLink)
+  local itemId, itemName = itemLink:match("|Hitem:(%d+).+|h%[(.+)%]|h")
+  if not itemId then return nil end
+
+  itemId = tonumber(itemId)
+
   local item = {
     id = itemId,
     isBound = false,
@@ -31,19 +36,21 @@ function Item:CreateForId(itemId)
   -- GetItemInfo returns nil if the item has not yet been cached
   -- If not cached, we have to load it first before populating properties
   if C_Item.IsItemDataCachedByID(itemId) then
-    item:PopulateStaticProperties()
+    item:PopulateStaticProperties(itemLink, itemName)
   else
-    BItem:CreateFromItemID(itemId):ContinueOnItemLoad(function() item:PopulateStaticProperties() end)
+    BItem:CreateFromItemID(itemId):ContinueOnItemLoad(function()
+      item:PopulateStaticProperties(itemLink, itemName)
+    end)
   end
 
   return item
 end
 
 function Item:CreateFromContainer(bag, slot)
-  local itemId = GetContainerItemID(bag, slot)
-  if not itemId then return nil end
+  local link = GetContainerItemLink(bag, slot)
+  if not link then return nil end
 
-  local item = Item:CreateForId(itemId)
+  local item = Item:CreateForLink(link)
   item.location = ItemLocation:CreateFromBagAndSlot(bag, slot)
   item.guid = C_Item.GetItemGUID(item.location)
   item.isBound = C_Item.IsBound(item.location)
@@ -56,11 +63,17 @@ function Item:CreateFromLocation(location)
   return Item:CreateFromContainer(location.bagID, location.slotIndex)
 end
 
-function Item:PopulateStaticProperties()
+function Item:PopulateStaticProperties(link, name)
   self.name, self.link, self.quality, self.ilvl, self.minLevel, _, _, _, self.equipLoc, self.texture, _, self.classId, self.subclassId = GetItemInfo(self.id)
   if not self.name then
     NotaLoot:Error("Invalid itemId", self.id)
   end
+
+  -- To handle items with variable suffixes, if is passed directly from the container item,
+  -- instead of loaded from GetItemInfo, which returns only the link without suffixes
+  if link then self.link = link end
+  if name then self.name = name end
+
   self:FireMessage(NotaLoot.MESSAGE.ON_CHANGE)
 end
 
@@ -149,13 +162,13 @@ function Item:LocationInInventory(filter)
 end
 
 function Item:Encode()
-  return table.concat({ self.id, self.info.status, self.info.winner }, NotaLoot.SEPARATOR.ELEMENT)
+  return table.concat({ self.link, self.info.status, self.info.winner }, NotaLoot.SEPARATOR.ELEMENT)
 end
 
 function Item:Decode(encodedStr)
   local elements = NotaLoot:Split(encodedStr, NotaLoot.SEPARATOR.ELEMENT)
 
-  local item = self:CreateForId(tonumber(elements[1]))
+  local item = self:CreateForLink(elements[1])
   item.info = { status = tonumber(elements[2]), winner = elements[3] }
 
   return item
