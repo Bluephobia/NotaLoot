@@ -2,7 +2,7 @@
 ## Title: Nota Loot
 ## Notes: Loot distribution helper developed for nota
 ## Author: Bluephobia
-## Version: 5.0.0
+## Version: 5.0.1
 ## SavedVariables: NotaLootPrefs
 
 embeds.xml
