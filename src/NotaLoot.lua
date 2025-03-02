@@ -140,8 +140,12 @@ function NotaLoot:ProcessCommand(cmd, ...)
   local arg = select(1, ...)
 
   if arg == "opt" then
-    InterfaceOptionsFrame_Show()
-    InterfaceOptionsFrame_OpenToCategory(AddonName)
+    if Settings and Settings.OpenToCategory then
+      Settings.OpenToCategory(AddonName)
+    else
+      InterfaceOptionsFrame_Show()
+      InterfaceOptionsFrame_OpenToCategory(AddonName)
+    end
   elseif arg == "dlog" then
     NotaLoot.GUI:ShowLogWindow(self.debugLog)
   elseif cmd == "nlm" and arg == "export" then
