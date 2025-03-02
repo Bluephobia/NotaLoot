@@ -395,11 +395,11 @@ function Master:ReloadItem(item)
 end
 
 function Master:ProcessAutoAddedItems()
-  local count = #self.pendingAutoAddedItems
+  local it, count = 1, #self.pendingAutoAddedItems
 
   for i = 1, count do
     local pendingItem = self.pendingAutoAddedItems[i]
-    self.pendingAutoAddedItems[i] = nil
+    local processed = false
 
     if pendingItem then
       -- Find where the item ended up in our inventory
@@ -408,10 +408,23 @@ function Master:ProcessAutoAddedItems()
         local invItem = NotaLoot.Item:CreateFromLocation(loc)
         if invItem.id == pendingItem.id and self.session:AddItem(invItem, nil, true) then
           NotaLoot:Info("Added", invItem.link, "to the loot session")
+          processed = true
           return true
         end
         return false
       end)
+    else
+      processed = true
+    end
+
+    if processed then
+      self.pendingAutoAddedItems[i] = nil
+    else
+      if i ~= it then
+        self.pendingAutoAddedItems[it] = pendingItem
+        self.pendingAutoAddedItems[i] = nil
+      end
+      it = it + 1
     end
   end
 end
