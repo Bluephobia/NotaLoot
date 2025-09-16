@@ -40,8 +40,8 @@ local ClassFilterTable = {
     [4] = { -- Armor
       [0] = true, -- Misc e.g. Trinket, Ring, Neck
       [1] = false, -- Cloth
-      [2] = true, -- Leather
-      [3] = true, -- Mail
+      [2] = false, -- Leather
+      [3] = false, -- Mail
       [4] = true, -- Plate
       [6] = true, -- Shield
     },
@@ -66,9 +66,9 @@ local ClassFilterTable = {
     },
     [4] = { -- Armor
       [0] = true, -- Misc e.g. Trinket, Ring, Neck
-      [1] = true, -- Cloth
-      [2] = true, -- Leather
-      [3] = true, -- Mail
+      [1] = false, -- Cloth
+      [2] = false, -- Leather
+      [3] = false, -- Mail
       [4] = true, -- Plate
       [6] = true, -- Shield
       [7] = true, -- Libram
@@ -95,7 +95,7 @@ local ClassFilterTable = {
     [4] = { -- Armor
       [0] = true, -- Misc e.g. Trinket, Ring, Neck
       [1] = false, -- Cloth
-      [2] = true, -- Leather
+      [2] = false, -- Leather
       [3] = true, -- Mail
       [4] = false, -- Plate
       [6] = false, -- Shield
@@ -203,8 +203,8 @@ local ClassFilterTable = {
     },
     [4] = { -- Armor
       [0] = true, -- Misc e.g. Trinket, Ring, Neck
-      [1] = true, -- Cloth
-      [2] = true, -- Leather
+      [1] = false, -- Cloth
+      [2] = false, -- Leather
       [3] = true, -- Mail
       [4] = false, -- Plate
       [6] = true, -- Shield
@@ -265,6 +265,35 @@ local ClassFilterTable = {
       [6] = false, -- Shield
     },
   },
+  [10] = { -- Monk
+    [2] = { -- Weapon
+      [0] = true, -- 1H Axe
+      [1] = false, -- 2H Axe
+      [2] = false, -- Bow
+      [3] = false, -- Gun
+      [4] = true, -- 1H Mace
+      [5] = false, -- 2H Mace
+      [6] = true, -- Polearm
+      [7] = true, -- 1H Sword
+      [8] = false, -- 2H Sword
+      [10] = true, -- Staff
+      [13] = true, -- Fist
+      [15] = false, -- Dagger
+      [16] = false, -- Thrown
+      [18] = false, -- Crossbow
+      [19] = false, -- Wand
+    },
+    [4] = { -- Armor
+      [0] = true, -- Misc e.g. Trinket, Ring, Neck
+      [1] = false, -- Cloth
+      [2] = true, -- Leather
+      [3] = false, -- Mail
+      [4] = false, -- Plate
+      [6] = false, -- Shield
+      [8] = false, -- Idol
+    },
+  },
+
   [11] = { -- Druid
     [2] = { -- Weapon
       [0] = false, -- 1H Axe
@@ -285,7 +314,7 @@ local ClassFilterTable = {
     },
     [4] = { -- Armor
       [0] = true, -- Misc e.g. Trinket, Ring, Neck
-      [1] = true, -- Cloth
+      [1] = false, -- Cloth
       [2] = true, -- Leather
       [3] = false, -- Mail
       [4] = false, -- Plate
