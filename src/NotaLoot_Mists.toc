@@ -1,4 +1,4 @@
-## Interface: 30403
+## Interface: 50500
 ## Title: Nota Loot
 ## Notes: Loot distribution helper developed for nota
 ## Author: Bluephobia
@@ -16,5 +16,5 @@ Item.lua
 Session.lua
 Client.lua
 Master.lua
-Filter.lua
+Filter-MOP.lua
 Options.lua
