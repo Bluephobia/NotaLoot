@@ -100,7 +100,14 @@ function NotaLoot:OnEnable()
   -- Addon messages are rate limited
   -- To work around this, send at most 1 message every 750ms (empirical "safe" interval)
   -- In practice this mostly rate limits broadcast messages, but those can be combined anyway
-  self.messageTimer = C_Timer.NewTicker(0.75, function()
+  local messageInterval = 0.75
+
+  -- On Titan Reforged realms, addon messages are further rate limited
+  if string.sub(GetBuildInfo(), 1, 3) == "3.8" then
+    messageInterval = 2
+  end
+
+  self.messageTimer = C_Timer.NewTicker(messageInterval, function()
     self:SendCommImmediate()
   end)
 end
