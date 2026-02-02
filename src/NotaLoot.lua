@@ -98,9 +98,9 @@ end
 
 function NotaLoot:OnEnable()
   -- Addon messages are rate limited
-  -- To work around this, send at most 1 message every 750ms (empirical "safe" interval)
+  -- To work around this, send at most 1 message every 1s (empirical "safe" interval)
   -- In practice this mostly rate limits broadcast messages, but those can be combined anyway
-  self.messageTimer = C_Timer.NewTicker(0.75, function()
+  self.messageTimer = C_Timer.NewTicker(1, function()
     self:SendCommImmediate()
   end)
 end
@@ -219,11 +219,14 @@ function NotaLoot:SendCommImmediate()
   local payload, channel, target = self.messageQueue:Dequeue()
 
   -- Keep pulling messages with the same destination, because they can be combined
-  while not self.messageQueue:IsEmpty() do
+  -- Limit the number of combined messages to avoid creating a payload that is too large
+  local count = 1
+  while not self.messageQueue:IsEmpty() and count < 5 do
     local nextPayload, nextChannel, nextTarget = self.messageQueue:Peek()
     if not nextPayload or nextChannel ~= channel or nextTarget ~= target then break end
     payload = payload..NotaLoot.SEPARATOR.MESSAGE..nextPayload
     self.messageQueue:Dequeue()
+    count = count + 1
   end
 
   if not payload then return end
